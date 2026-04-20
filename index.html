@@ -10,6 +10,8 @@
         .block-a { border-top: 4px solid #ef4444; }
         .block-b { border-top: 4px solid #10b981; }
         .block-c { border-top: 4px solid #f59e0b; }
+        /* Defaulter style */
+        .defaulter-row { background-color: #fee2e2 !important; color: #991b1b; } 
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900">
@@ -62,7 +64,7 @@
                     <option value="">Select Flat</option>
                 </select>
 
-                <input type="text" id="ownerName" placeholder="Owner Name" class="border p-2 rounded">
+                <input type="text" id="ownerName" placeholder="Owner Name" class="border p-2 rounded" required>
                 <input type="tel" id="ownerPhone" placeholder="Owner Phone" class="border p-2 rounded">
                 <input type="text" id="tenantName" placeholder="Tenant Name (Optional)" class="border p-2 rounded">
                 <input type="tel" id="tenantPhone" placeholder="Tenant Phone" class="border p-2 rounded">
@@ -81,7 +83,7 @@
                     <option>Yearly</option>
                 </select>
 
-                <input type="number" id="maintFee" placeholder="Maint. Fee" class="border p-2 rounded" required>
+                <input type="number" id="maintFee" placeholder="Maint. Fee (e.g. 2000)" class="border p-2 rounded" required>
                 <input type="number" id="parkingFee" placeholder="Parking Fee" class="border p-2 rounded">
                 <input type="number" id="waterFee" placeholder="Water Charges" class="border p-2 rounded">
                 <input type="number" id="penaltyFee" placeholder="Penalty" class="border p-2 rounded">
@@ -97,7 +99,7 @@
         </div>
 
         <div class="mb-4 flex flex-wrap gap-2">
-            <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="🔍 Search Flat, Owner, or Month..." class="border p-2 rounded-lg w-full md:w-1/3 shadow-sm">
+            <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="🔍 Search Flat, Owner, Month, or Cycle..." class="border p-2 rounded-lg w-full md:w-1/3 shadow-sm">
             <select id="filterBlock" onchange="filterTable()" class="border p-2 rounded-lg shadow-sm">
                 <option value="">All Blocks</option>
                 <option value="A">Block A</option>
@@ -152,16 +154,27 @@
 
         document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const flatNo = document.getElementById('flatNo').value;
+            const month = document.getElementById('month').value;
+
+            // 1. DUPLICATE DATA CHECK
+            const isDuplicate = entries.some(item => item.flatNo === flatNo && item.month === month);
+            if (isDuplicate) {
+                alert(`Error: A record already exists for Flat ${flatNo} in ${month}.`);
+                return;
+            }
+
             const entry = {
                 id: Date.now(),
                 date: document.getElementById('date').value,
                 block: document.getElementById('block').value,
-                flatNo: document.getElementById('flatNo').value,
+                flatNo: flatNo,
                 owner: document.getElementById('ownerName').value,
                 oPhone: document.getElementById('ownerPhone').value,
                 tenant: document.getElementById('tenantName').value,
                 tPhone: document.getElementById('tenantPhone').value,
-                month: document.getElementById('month').value,
+                month: month,
                 cycle: document.getElementById('cycle').value,
                 maint: parseFloat(document.getElementById('maintFee').value || 0),
                 parking: parseFloat(document.getElementById('parkingFee').value || 0),
@@ -172,12 +185,12 @@
 
             try {
                 await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(entry) });
-                alert("Saved to Cloud & Local Storage!");
+                alert("Entry Saved Successfully!");
                 entries.push(entry);
                 saveAndRender();
                 e.target.reset();
             } catch (err) {
-                alert("Sync Error. Saved Locally.");
+                alert("Network Sync Issue. Data saved locally.");
                 entries.push(entry);
                 saveAndRender();
             }
@@ -197,26 +210,34 @@
                 const rowTotal = e.maint + e.parking + e.water + e.penalty;
                 totals.m += rowTotal; totals.p += e.penalty; totals.w += e.water; totals.prk += e.parking;
 
-                const row = `<tr class="hover:bg-slate-50 block-${e.block.toLowerCase()}">
+                // 2. DEFAULTER HIGHLIGHTING LOGIC
+                // Logic: Check if the entry date is after the 15th of the month
+                const entryDate = new Date(e.date);
+                const dayOfMonth = entryDate.getDate();
+                const isDefaulter = dayOfMonth > 15;
+                const rowClass = isDefaulter ? "defaulter-row" : `hover:bg-slate-50 block-${e.block.toLowerCase()}`;
+
+                const row = `<tr class="${rowClass} border-b border-slate-200">
                     <td class="p-4 font-bold text-blue-700">${e.flatNo}</td>
                     <td class="p-4">O: ${e.owner}<br><span class="text-xs text-slate-500">T: ${e.tenant || 'N/A'}</span></td>
                     <td class="p-4 text-xs">${e.oPhone}<br>${e.tPhone}</td>
-                    <td class="p-4">${e.month}<br><span class="text-[10px] bg-slate-200 px-1 rounded">${e.cycle}</span></td>
+                    <td class="p-4">${e.month}<br><span class="text-[10px] bg-slate-200 px-1 rounded cycle-tag">${e.cycle}</span></td>
                     <td class="p-4">₹${e.maint}</td>
                     <td class="p-4 text-xs">P: ₹${e.penalty}<br>W: ₹${e.water}</td>
                     <td class="p-4 font-bold text-emerald-700">₹${rowTotal}</td>
                     <td class="p-4">${e.docs ? `<a href="${e.docs}" target="_blank" class="text-blue-500 underline">View</a>` : '-'}</td>
-                    <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-red-400 hover:text-red-600 text-xs">Delete</button></td>
+                    <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-red-400 hover:text-red-600 text-xs font-bold">Delete</button></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
 
-            document.getElementById('totalCollected').innerText = `₹${totals.m.toLocaleString()}`;
-            document.getElementById('totalPenalty').innerText = `₹${totals.p.toLocaleString()}`;
-            document.getElementById('totalWater').innerText = `₹${totals.w.toLocaleString()}`;
-            document.getElementById('totalParking').innerText = `₹${totals.prk.toLocaleString()}`;
+            document.getElementById('totalCollected').innerText = `₹${totals.m.toLocaleString('en-IN')}`;
+            document.getElementById('totalPenalty').innerText = `₹${totals.p.toLocaleString('en-IN')}`;
+            document.getElementById('totalWater').innerText = `₹${totals.w.toLocaleString('en-IN')}`;
+            document.getElementById('totalParking').innerText = `₹${totals.prk.toLocaleString('en-IN')}`;
         }
 
+        // 3. SEARCH BY CYCLE SELECTION & INPUT
         function filterTable() {
             const input = document.getElementById("tableSearch").value.toUpperCase();
             const blockFilter = document.getElementById("filterBlock").value;
@@ -232,25 +253,25 @@
         }
 
         function deleteEntry(id) {
-            if(confirm("Delete this record?")) {
+            if(confirm("Confirm deletion of this record?")) {
                 entries = entries.filter(e => e.id !== id);
                 saveAndRender();
             }
         }
 
         function exportToCSV() {
-            let csv = "Date,Flat,Owner,Tenant,Month,Total\n";
+            let csv = "Date,Flat,Owner,Tenant,Month,Cycle,Total\n";
             entries.forEach(e => {
-                csv += `${e.date},${e.flatNo},${e.owner},${e.tenant},${e.month},${e.maint + e.parking + e.water + e.penalty}\n`;
+                csv += `${e.date},${e.flatNo},${e.owner},${e.tenant},${e.month},${e.cycle},${e.maint + e.parking + e.water + e.penalty}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv' });
-            window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = window.URL.createObjectURL(blob);
-            a.download = 'Apartment_Report.csv';
+            a.download = `Apartment_Report_${new Date().toLocaleDateString()}.csv`;
             a.click();
         }
 
+        // Initial Load
         saveAndRender();
     </script>
 </body>
