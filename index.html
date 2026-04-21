@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Apartment Manager</title>
+    <title>Advanced Apartment Manager v3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .header-gradient { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); }
-        .block-a { border-top: 4px solid #ef4444; }
-        .block-b { border-top: 4px solid #10b981; }
-        .block-c { border-top: 4px solid #f59e0b; }
-        /* Defaulter style */
-        .defaulter-row { background-color: #fee2e2 !important; color: #991b1b; } 
+        .defaulter-row { background-color: #fee2e2 !important; border-left: 4px solid #ef4444; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-900">
@@ -20,106 +16,90 @@
         <header class="header-gradient text-white p-6 rounded-xl shadow-lg mb-8 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl font-bold">Apartment Maintenance Portal</h1>
-                <p class="opacity-80">Blocks A, B, & C Management</p>
+                <p class="opacity-80">Senior Admin Dashboard</p>
             </div>
-            <button onclick="exportToCSV()" class="bg-white text-blue-800 font-bold px-6 py-2 rounded-lg hover:bg-blue-50 transition">Export Report</button>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-blue-600">
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Revenue</p>
-                <p id="totalCollected" class="text-2xl font-black">₹0</p>
+        <div class="bg-indigo-900 text-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center mb-4 border-b border-indigo-700 pb-2">
+                <h2 class="text-lg font-bold">1. Set Monthly Rates (Applies to all)</h2>
+                <button id="editConfigBtn" onclick="toggleConfig()" class="bg-indigo-500 px-4 py-1 rounded text-sm hover:bg-indigo-400">Edit Rates</button>
             </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-red-500">
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Penalties</p>
-                <p id="totalPenalty" class="text-2xl font-black">₹0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-cyan-500">
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Utility (Water)</p>
-                <p id="totalWater" class="text-2xl font-black">₹0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl shadow-sm border-b-4 border-indigo-500">
-                <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Parking</p>
-                <p id="totalParking" class="text-2xl font-black">₹0</p>
+            <div id="configGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs opacity-70 uppercase">Maint. Fee</label>
+                    <input type="number" id="cfgMaint" value="2000" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs opacity-70 uppercase">Parking</label>
+                    <input type="number" id="cfgParking" value="500" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs opacity-70 uppercase">Water</label>
+                    <input type="number" id="cfgWater" value="300" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs opacity-70 uppercase">Other</label>
+                    <input type="number" id="cfgOther" value="0" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
+                </div>
             </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <h2 class="text-lg font-bold mb-4 border-b pb-2">New Maintenance Entry</h2>
+            <h2 class="text-lg font-bold mb-4 border-b pb-2 text-blue-800">2. Record Flat Payment</h2>
             <form id="maintenanceForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <select id="block" class="border p-2 rounded bg-slate-50" onchange="updateFlatNumbers()" required>
-                    <option value="">Select Block</option>
-                    <option value="A">Block A</option>
-                    <option value="B">Block B</option>
-                    <option value="C">Block C</option>
+                <select id="block" class="border p-2 rounded" onchange="updateFlatNumbers()" required>
+                    <option value="">Select Block</option><option value="A">Block A</option><option value="B">Block B</option>
                 </select>
-                <select id="floor" class="border p-2 rounded bg-slate-50" onchange="updateFlatNumbers()" required>
-                    <option value="">Select Floor</option>
-                    <option value="Ground">Ground Floor</option>
-                    <option value="1">1st Floor</option>
-                    <option value="2">2nd Floor</option>
-                    <option value="3">3rd Floor</option>
-                </select>
-                <select id="flatNo" class="border p-2 rounded bg-slate-50" required>
-                    <option value="">Select Flat</option>
-                </select>
-
+                <select id="flatNo" class="border p-2 rounded" required><option value="">Select Flat</option></select>
                 <input type="text" id="ownerName" placeholder="Owner Name" class="border p-2 rounded" required>
-                <input type="tel" id="ownerPhone" placeholder="Owner Phone" class="border p-2 rounded">
-                <input type="text" id="tenantName" placeholder="Tenant Name (Optional)" class="border p-2 rounded">
-                <input type="tel" id="tenantPhone" placeholder="Tenant Phone" class="border p-2 rounded">
-
-                <select id="month" class="border p-2 rounded bg-slate-50" required>
-                    <option value="">Select Month</option>
-                    <option>January</option><option>February</option><option>March</option>
-                    <option>April</option><option>May</option><option>June</option>
-                    <option>July</option><option>August</option><option>September</option>
-                    <option>October</option><option>November</option><option>December</option>
-                </select>
-                <select id="cycle" class="border p-2 rounded bg-slate-50" required>
-                    <option>Monthly</option>
-                    <option>Quarterly</option>
-                    <option>Half-Yearly</option>
-                    <option>Yearly</option>
+                <select id="month" class="border p-2 rounded" required>
+                    <option value="">Billing Month</option><option>January</option><option>February</option><option>March</option>
+                    <option>April</option><option>May</option><option>June</option><option>July</option>
                 </select>
 
-                <input type="number" id="maintFee" placeholder="Maint. Fee (e.g. 2000)" class="border p-2 rounded" required>
-                <input type="number" id="parkingFee" placeholder="Parking Fee" class="border p-2 rounded">
-                <input type="number" id="waterFee" placeholder="Water Charges" class="border p-2 rounded">
-                <input type="number" id="penaltyFee" placeholder="Penalty" class="border p-2 rounded">
-                
-                <div class="md:col-span-2">
-                    <label class="text-xs font-bold text-slate-500">Upload Receipt Link / Docs</label>
-                    <input type="text" id="docUrl" placeholder="Paste Google Drive Link or File Name" class="border p-2 rounded w-full">
+                <div class="md:col-span-4 grid grid-cols-2 md:grid-cols-6 gap-4 bg-slate-50 p-4 rounded-lg border border-dashed">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Maint.</label>
+                        <input type="number" id="maintFee" class="w-full border-none bg-transparent font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Parking</label>
+                        <input type="number" id="parkingFee" class="w-full border-none bg-transparent font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Water</label>
+                        <input type="number" id="waterFee" class="w-full border-none bg-transparent font-bold" readonly>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Penalty (Auto)</label>
+                        <input type="number" id="penaltyFee" class="w-full border-none text-red-600 font-bold" value="0" readonly>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Paid Amount</label>
+                        <input type="number" id="paidAmount" placeholder="0" class="w-full border-b-2 border-blue-600 focus:outline-none" required>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500">Entry Date</label>
+                        <input type="date" id="date" class="w-full border-none bg-transparent" onchange="calculatePenalty()" required>
+                    </div>
                 </div>
-                
-                <input type="date" id="date" class="border p-2 rounded" required>
-                <button type="submit" class="bg-blue-700 text-white rounded font-bold hover:bg-blue-800 transition">Save Entry</button>
+
+                <button type="submit" class="md:col-span-4 bg-blue-700 text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition">Save Payment Record</button>
             </form>
         </div>
 
-        <div class="mb-4 flex flex-wrap gap-2">
-            <input type="text" id="tableSearch" onkeyup="filterTable()" placeholder="🔍 Search Flat, Owner, Month, or Cycle..." class="border p-2 rounded-lg w-full md:w-1/3 shadow-sm">
-            <select id="filterBlock" onchange="filterTable()" class="border p-2 rounded-lg shadow-sm">
-                <option value="">All Blocks</option>
-                <option value="A">Block A</option>
-                <option value="B">Block B</option>
-                <option value="C">Block C</option>
-            </select>
-        </div>
-
         <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
-            <table class="w-full text-left border-collapse" id="maintTable">
+            <table class="w-full text-left" id="maintTable">
                 <thead>
-                    <tr class="bg-slate-800 text-white text-xs uppercase">
-                        <th class="p-4">Flat Info</th>
-                        <th class="p-4">Owner / Tenant</th>
-                        <th class="p-4">Contact</th>
-                        <th class="p-4">Month/Cycle</th>
-                        <th class="p-4">Maint</th>
-                        <th class="p-4">Others</th>
-                        <th class="p-4">Total</th>
-                        <th class="p-4">Docs</th>
+                    <tr class="bg-slate-800 text-white text-xs">
+                        <th class="p-4">Flat</th>
+                        <th class="p-4">Month</th>
+                        <th class="p-4">Total Due</th>
+                        <th class="p-4">Penalty</th>
+                        <th class="p-4">Paid</th>
+                        <th class="p-4">Pending</th>
+                        <th class="p-4">Status</th>
                         <th class="p-4">Action</th>
                     </tr>
                 </thead>
@@ -129,150 +109,120 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSf3vRcEtBPvaeSw8wDoR21WM50A64JvgW44HDynxGu_90gz6KcfGiWS-vvadxpW_Muw/exec';
-        let entries = JSON.parse(localStorage.getItem('apt_v2_data')) || [];
+        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
+        let entries = JSON.parse(localStorage.getItem('apt_v3_data')) || [];
 
-        function updateFlatNumbers() {
-            const block = document.getElementById('block').value;
-            const floor = document.getElementById('floor').value;
-            const flatSelect = document.getElementById('flatNo');
-            flatSelect.innerHTML = '<option value="">Select Flat</option>';
+        // 1. ADMIN CONFIG TOGGLE
+        function toggleConfig() {
+            const inputs = document.querySelectorAll('#configGrid input');
+            const btn = document.getElementById('editConfigBtn');
+            const isEditing = btn.innerText === "Save Rates";
 
-            if(!block || !floor) return;
+            inputs.forEach(input => {
+                input.readOnly = isEditing;
+                input.classList.toggle('bg-white', !isEditing);
+                input.classList.toggle('text-black', !isEditing);
+            });
 
-            for(let i=1; i<=4; i++) {
-                let fName = "";
-                if(floor === "Ground") fName = `${block}G-${i}`;
-                else fName = `${block}-${floor}0${i}`;
-                
-                let opt = document.createElement('option');
-                opt.value = fName;
-                opt.innerHTML = fName;
-                flatSelect.appendChild(opt);
+            if (isEditing) {
+                btn.innerText = "Edit Rates";
+                btn.className = "bg-indigo-500 px-4 py-1 rounded text-sm hover:bg-indigo-400";
+                syncConfigToForm();
+            } else {
+                btn.innerText = "Save Rates";
+                btn.className = "bg-green-500 px-4 py-1 rounded text-sm hover:bg-green-400";
             }
         }
 
+        // 2. AUTO-SYNC ADMIN RATES TO ENTRY FORM
+        function syncConfigToForm() {
+            document.getElementById('maintFee').value = document.getElementById('cfgMaint').value;
+            document.getElementById('parkingFee').value = document.getElementById('cfgParking').value;
+            document.getElementById('waterFee').value = document.getElementById('cfgWater').value;
+        }
+
+        // 3. PENALTY LOGIC (If day > 15)
+        function calculatePenalty() {
+            const dateVal = document.getElementById('date').value;
+            if (!dateVal) return;
+            const day = new Date(dateVal).getDate();
+            document.getElementById('penaltyFee').value = (day > 15) ? 500 : 0;
+        }
+
+        // 4. DUPLICATE CHECK & SAVE
         document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const flatNo = document.getElementById('flatNo').value;
             const month = document.getElementById('month').value;
 
-            // 1. DUPLICATE DATA CHECK
-            const isDuplicate = entries.some(item => item.flatNo === flatNo && item.month === month);
-            if (isDuplicate) {
-                alert(`Error: A record already exists for Flat ${flatNo} in ${month}.`);
+            if (entries.some(ent => ent.flatNo === flatNo && ent.month === month)) {
+                alert("Duplicate record detected for this flat and month!");
                 return;
             }
 
+            const maint = parseFloat(document.getElementById('maintFee').value);
+            const park = parseFloat(document.getElementById('parkingFee').value);
+            const water = parseFloat(document.getElementById('waterFee').value);
+            const penalty = parseFloat(document.getElementById('penaltyFee').value);
+            const paid = parseFloat(document.getElementById('paidAmount').value);
+            
+            const totalDue = maint + park + water + penalty;
+            const pending = totalDue - paid;
+
             const entry = {
                 id: Date.now(),
-                date: document.getElementById('date').value,
-                block: document.getElementById('block').value,
-                flatNo: flatNo,
+                flatNo, month, 
                 owner: document.getElementById('ownerName').value,
-                oPhone: document.getElementById('ownerPhone').value,
-                tenant: document.getElementById('tenantName').value,
-                tPhone: document.getElementById('tenantPhone').value,
-                month: month,
-                cycle: document.getElementById('cycle').value,
-                maint: parseFloat(document.getElementById('maintFee').value || 0),
-                parking: parseFloat(document.getElementById('parkingFee').value || 0),
-                water: parseFloat(document.getElementById('waterFee').value || 0),
-                penalty: parseFloat(document.getElementById('penaltyFee').value || 0),
-                docs: document.getElementById('docUrl').value
+                totalDue, penalty, paid, pending,
+                date: document.getElementById('date').value
             };
 
-            try {
-                await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(entry) });
-                alert("Entry Saved Successfully!");
-                entries.push(entry);
-                saveAndRender();
-                e.target.reset();
-            } catch (err) {
-                alert("Network Sync Issue. Data saved locally.");
-                entries.push(entry);
-                saveAndRender();
-            }
-        });
-
-        function saveAndRender() {
-            localStorage.setItem('apt_v2_data', JSON.stringify(entries));
+            entries.push(entry);
+            localStorage.setItem('apt_v3_data', JSON.stringify(entries));
             renderTable();
-        }
+            e.target.reset();
+            syncConfigToForm();
+        });
 
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            let totals = {m:0, p:0, w:0, prk:0};
-
-            entries.sort((a,b) => b.id - a.id).forEach(e => {
-                const rowTotal = e.maint + e.parking + e.water + e.penalty;
-                totals.m += rowTotal; totals.p += e.penalty; totals.w += e.water; totals.prk += e.parking;
-
-                // 2. DEFAULTER HIGHLIGHTING LOGIC
-                // Logic: Check if the entry date is after the 15th of the month
-                const entryDate = new Date(e.date);
-                const dayOfMonth = entryDate.getDate();
-                const isDefaulter = dayOfMonth > 15;
-                const rowClass = isDefaulter ? "defaulter-row" : `hover:bg-slate-50 block-${e.block.toLowerCase()}`;
-
-                const row = `<tr class="${rowClass} border-b border-slate-200">
-                    <td class="p-4 font-bold text-blue-700">${e.flatNo}</td>
-                    <td class="p-4">O: ${e.owner}<br><span class="text-xs text-slate-500">T: ${e.tenant || 'N/A'}</span></td>
-                    <td class="p-4 text-xs">${e.oPhone}<br>${e.tPhone}</td>
-                    <td class="p-4">${e.month}<br><span class="text-[10px] bg-slate-200 px-1 rounded cycle-tag">${e.cycle}</span></td>
-                    <td class="p-4">₹${e.maint}</td>
-                    <td class="p-4 text-xs">P: ₹${e.penalty}<br>W: ₹${e.water}</td>
-                    <td class="p-4 font-bold text-emerald-700">₹${rowTotal}</td>
-                    <td class="p-4">${e.docs ? `<a href="${e.docs}" target="_blank" class="text-blue-500 underline">View</a>` : '-'}</td>
-                    <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-red-400 hover:text-red-600 text-xs font-bold">Delete</button></td>
+            entries.forEach(e => {
+                const isDefaulter = e.pending > 0 || e.penalty > 0;
+                const row = `<tr class="${isDefaulter ? 'defaulter-row' : ''}">
+                    <td class="p-4 font-bold">${e.flatNo}</td>
+                    <td class="p-4">${e.month}</td>
+                    <td class="p-4">₹${e.totalDue}</td>
+                    <td class="p-4 text-red-600 font-bold">₹${e.penalty}</td>
+                    <td class="p-4 text-green-700">₹${e.paid}</td>
+                    <td class="p-4 font-black ${e.pending > 0 ? 'text-red-600' : 'text-slate-400'}">₹${e.pending}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded text-[10px] ${e.pending <= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${e.pending <= 0 ? 'CLEAR' : 'DUE'}
+                        </span>
+                    </td>
+                    <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-xs text-red-400">Delete</button></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
-
-            document.getElementById('totalCollected').innerText = `₹${totals.m.toLocaleString('en-IN')}`;
-            document.getElementById('totalPenalty').innerText = `₹${totals.p.toLocaleString('en-IN')}`;
-            document.getElementById('totalWater').innerText = `₹${totals.w.toLocaleString('en-IN')}`;
-            document.getElementById('totalParking').innerText = `₹${totals.prk.toLocaleString('en-IN')}`;
         }
 
-        // 3. SEARCH BY CYCLE SELECTION & INPUT
-        function filterTable() {
-            const input = document.getElementById("tableSearch").value.toUpperCase();
-            const blockFilter = document.getElementById("filterBlock").value;
-            const rows = document.getElementById("tableBody").getElementsByTagName("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                const text = rows[i].textContent.toUpperCase();
-                const matchesSearch = text.indexOf(input) > -1;
-                const matchesBlock = blockFilter === "" || rows[i].classList.contains(`block-${blockFilter.toLowerCase()}`);
-                
-                rows[i].style.display = (matchesSearch && matchesBlock) ? "" : "none";
+        // Helper for flat numbers (same as existing)
+        function updateFlatNumbers() {
+            const block = document.getElementById('block').value;
+            const select = document.getElementById('flatNo');
+            select.innerHTML = '<option value="">Select Flat</option>';
+            if (!block) return;
+            for(let i=101; i<=104; i++) {
+                let opt = document.createElement('option');
+                opt.value = `${block}-${i}`; opt.innerHTML = `${block}-${i}`;
+                select.appendChild(opt);
             }
         }
 
-        function deleteEntry(id) {
-            if(confirm("Confirm deletion of this record?")) {
-                entries = entries.filter(e => e.id !== id);
-                saveAndRender();
-            }
-        }
-
-        function exportToCSV() {
-            let csv = "Date,Flat,Owner,Tenant,Month,Cycle,Total\n";
-            entries.forEach(e => {
-                csv += `${e.date},${e.flatNo},${e.owner},${e.tenant},${e.month},${e.cycle},${e.maint + e.parking + e.water + e.penalty}\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(blob);
-            a.download = `Apartment_Report_${new Date().toLocaleDateString()}.csv`;
-            a.click();
-        }
-
-        // Initial Load
-        saveAndRender();
+        // Initial setup
+        syncConfigToForm();
+        renderTable();
     </script>
 </body>
 </html>
