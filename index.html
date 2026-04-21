@@ -3,226 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Apartment Manager v3</title>
+    <title>Professional Apartment Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .header-gradient { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); }
-        .defaulter-row { background-color: #fee2e2 !important; border-left: 4px solid #ef4444; }
+        .pending-row { background-color: #fff1f2; border-left: 4px solid #e11d48; }
+        .paid-row { border-left: 4px solid #10b981; }
+        input:read-only { background-color: #f1f5f9; cursor: not-allowed; }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-900">
+<body class="bg-slate-100 font-sans text-slate-900 pb-10">
 
-    <div class="max-w-7xl mx-auto p-4">
-        <header class="header-gradient text-white p-6 rounded-xl shadow-lg mb-8 flex justify-between items-center">
+<div class="max-w-7xl mx-auto p-4">
+    <header class="header-gradient text-white p-6 rounded-xl shadow-lg mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Apartment Management System</h1>
+            <p class="opacity-80">Admin Financial Dashboard</p>
+        </div>
+        <div id="adminClock" class="text-right font-mono text-sm hidden md:block"></div>
+    </header>
+
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border-t-4 border-indigo-600">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold">Global Maintenance Setup (Admin)</h2>
+            <button id="editConfigBtn" onclick="toggleConfigEdit()" class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-md text-sm font-bold hover:bg-indigo-200">Edit Rates</button>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-                <h1 class="text-3xl font-bold">Apartment Maintenance Portal</h1>
-                <p class="opacity-80">Senior Admin Dashboard</p>
+                <label class="text-xs font-bold text-slate-500">Monthly Maint.</label>
+                <input type="number" id="globalMaint" value="2000" class="config-input w-full border p-2 rounded" readonly>
             </div>
-        </header>
-
-        <div class="bg-indigo-900 text-white rounded-xl shadow-lg p-6 mb-8">
-            <div class="flex justify-between items-center mb-4 border-b border-indigo-700 pb-2">
-                <h2 class="text-lg font-bold">1. Set Monthly Rates (Applies to all)</h2>
-                <button id="editConfigBtn" onclick="toggleConfig()" class="bg-indigo-500 px-4 py-1 rounded text-sm hover:bg-indigo-400">Edit Rates</button>
+            <div>
+                <label class="text-xs font-bold text-slate-500">Parking Fee</label>
+                <input type="number" id="globalParking" value="500" class="config-input w-full border p-2 rounded" readonly>
             </div>
-            <div id="configGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="block text-xs opacity-70 uppercase">Maint. Fee</label>
-                    <input type="number" id="cfgMaint" value="2000" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
-                </div>
-                <div>
-                    <label class="block text-xs opacity-70 uppercase">Parking</label>
-                    <input type="number" id="cfgParking" value="500" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
-                </div>
-                <div>
-                    <label class="block text-xs opacity-70 uppercase">Water</label>
-                    <input type="number" id="cfgWater" value="300" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
-                </div>
-                <div>
-                    <label class="block text-xs opacity-70 uppercase">Other</label>
-                    <input type="number" id="cfgOther" value="0" class="bg-indigo-800 border-none rounded p-2 w-full" readonly>
-                </div>
+            <div>
+                <label class="text-xs font-bold text-slate-500">Water Charges</label>
+                <input type="number" id="globalWater" value="300" class="config-input w-full border p-2 rounded" readonly>
             </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
-            <h2 class="text-lg font-bold mb-4 border-b pb-2 text-blue-800">2. Record Flat Payment</h2>
-            <form id="maintenanceForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <select id="block" class="border p-2 rounded" onchange="updateFlatNumbers()" required>
-                    <option value="">Select Block</option><option value="A">Block A</option><option value="B">Block B</option>
-                </select>
-                <select id="flatNo" class="border p-2 rounded" required><option value="">Select Flat</option></select>
-                <input type="text" id="ownerName" placeholder="Owner Name" class="border p-2 rounded" required>
-                <select id="month" class="border p-2 rounded" required>
-                    <option value="">Billing Month</option><option>January</option><option>February</option><option>March</option>
-                    <option>April</option><option>May</option><option>June</option><option>July</option>
-                </select>
-
-                <div class="md:col-span-4 grid grid-cols-2 md:grid-cols-6 gap-4 bg-slate-50 p-4 rounded-lg border border-dashed">
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Maint.</label>
-                        <input type="number" id="maintFee" class="w-full border-none bg-transparent font-bold" readonly>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Parking</label>
-                        <input type="number" id="parkingFee" class="w-full border-none bg-transparent font-bold" readonly>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Water</label>
-                        <input type="number" id="waterFee" class="w-full border-none bg-transparent font-bold" readonly>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Penalty (Auto)</label>
-                        <input type="number" id="penaltyFee" class="w-full border-none text-red-600 font-bold" value="0" readonly>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Paid Amount</label>
-                        <input type="number" id="paidAmount" placeholder="0" class="w-full border-b-2 border-blue-600 focus:outline-none" required>
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase font-bold text-slate-500">Entry Date</label>
-                        <input type="date" id="date" class="w-full border-none bg-transparent" onchange="calculatePenalty()" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="md:col-span-4 bg-blue-700 text-white py-3 rounded-lg font-bold hover:bg-blue-800 transition">Save Payment Record</button>
-            </form>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg overflow-x-auto">
-            <table class="w-full text-left" id="maintTable">
-                <thead>
-                    <tr class="bg-slate-800 text-white text-xs">
-                        <th class="p-4">Flat</th>
-                        <th class="p-4">Month</th>
-                        <th class="p-4">Total Due</th>
-                        <th class="p-4">Penalty</th>
-                        <th class="p-4">Paid</th>
-                        <th class="p-4">Pending</th>
-                        <th class="p-4">Status</th>
-                        <th class="p-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody" class="text-sm divide-y"></tbody>
-            </table>
+            <div>
+                <label class="text-xs font-bold text-slate-500">Other Charges</label>
+                <input type="number" id="globalOther" value="0" class="config-input w-full border p-2 rounded" readonly>
+            </div>
         </div>
     </div>
 
-    <script>
-        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
-        let entries = JSON.parse(localStorage.getItem('apt_v3_data')) || [];
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+        <h2 class="text-lg font-bold mb-4 border-b pb-2">Record Payment</h2>
+        <form id="maintenanceForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select id="block" class="border p-2 rounded bg-slate-50" onchange="updateFlatNumbers()" required>
+                <option value="">Block</option><option>A</option><option>B</option><option>C</option>
+            </select>
+            <select id="floor" class="border p-2 rounded bg-slate-50" onchange="updateFlatNumbers()" required>
+                <option value="">Floor</option><option value="Ground">G</option><option>1</option><option>2</option><option>3</option>
+            </select>
+            <select id="flatNo" class="border p-2 rounded bg-slate-50" required><option value="">Select Flat</option></select>
+            <select id="month" class="border p-2 rounded bg-slate-50" required>
+                <option value="">Month</option><option>January</option><option>February</option><option>March</option><option>April</option>
+            </select>
 
-        // 1. ADMIN CONFIG TOGGLE
-        function toggleConfig() {
-            const inputs = document.querySelectorAll('#configGrid input');
-            const btn = document.getElementById('editConfigBtn');
-            const isEditing = btn.innerText === "Save Rates";
+            <div class="md:col-span-1">
+                <label class="text-[10px] uppercase font-bold text-slate-400">Payment Date</label>
+                <input type="date" id="date" class="border p-2 rounded w-full" onchange="calculateFinancials()" required>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-slate-400">Auto Penalty (After 15th)</label>
+                <input type="number" id="penaltyFee" class="border p-2 rounded w-full font-bold text-red-600" value="0" readonly>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-slate-400">Amount Paid (₹)</label>
+                <input type="number" id="paidAmount" class="border p-2 rounded w-full border-blue-400 font-bold" oninput="calculateFinancials()" required>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-slate-400">Balance Pending</label>
+                <input type="number" id="pendingAmount" class="border p-2 rounded w-full font-black bg-slate-100" readonly>
+            </div>
 
-            inputs.forEach(input => {
-                input.readOnly = isEditing;
-                input.classList.toggle('bg-white', !isEditing);
-                input.classList.toggle('text-black', !isEditing);
-            });
+            <input type="text" id="ownerName" placeholder="Owner Name" class="border p-2 rounded" required>
+            <input type="tel" id="ownerPhone" placeholder="Phone" class="border p-2 rounded">
+            <div class="md:col-span-2 flex gap-2">
+                <input type="text" id="docUrl" placeholder="Receipt/Doc Link" class="border p-2 rounded flex-grow">
+                <button type="submit" class="bg-blue-700 text-white px-6 rounded font-bold hover:bg-blue-800 transition">Save Entry</button>
+            </div>
+        </form>
+    </div>
 
-            if (isEditing) {
-                btn.innerText = "Edit Rates";
-                btn.className = "bg-indigo-500 px-4 py-1 rounded text-sm hover:bg-indigo-400";
-                syncConfigToForm();
-            } else {
-                btn.innerText = "Save Rates";
-                btn.className = "bg-green-500 px-4 py-1 rounded text-sm hover:bg-green-400";
-            }
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <table class="w-full text-left" id="maintTable">
+            <thead class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                <tr>
+                    <th class="p-4">Flat Info</th>
+                    <th class="p-4">Month</th>
+                    <th class="p-4">Base Charges</th>
+                    <th class="p-4">Penalty</th>
+                    <th class="p-4">Paid</th>
+                    <th class="p-4">Pending</th>
+                    <th class="p-4">Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody" class="text-sm divide-y"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL';
+    let entries = JSON.parse(localStorage.getItem('apt_v3_data')) || [];
+
+    function toggleConfigEdit() {
+        const inputs = document.querySelectorAll('.config-input');
+        const btn = document.getElementById('editConfigBtn');
+        const isEditing = btn.innerText === "Save Rates";
+
+        inputs.forEach(input => input.readOnly = isEditing);
+        btn.innerText = isEditing ? "Edit Rates" : "Save Rates";
+        btn.className = isEditing ? "bg-indigo-100 text-indigo-700 px-4 py-1 rounded-md text-sm font-bold" : "bg-green-600 text-white px-4 py-1 rounded-md text-sm font-bold";
+        
+        if(isEditing) calculateFinancials(); // Refresh logic with new rates
+    }
+
+    function calculateFinancials() {
+        const payDate = document.getElementById('date').value;
+        const paid = parseFloat(document.getElementById('paidAmount').value || 0);
+        
+        // 1. Penalty Logic
+        let penalty = 0;
+        if(payDate) {
+            const day = new Date(payDate).getDate();
+            if(day > 15) penalty = 500;
+        }
+        document.getElementById('penaltyFee').value = penalty;
+
+        // 2. Pending Calculation
+        const maint = parseFloat(document.getElementById('globalMaint').value);
+        const park = parseFloat(document.getElementById('globalParking').value);
+        const water = parseFloat(document.getElementById('globalWater').value);
+        const other = parseFloat(document.getElementById('globalOther').value);
+        
+        const totalDue = maint + park + water + other + penalty;
+        const pending = totalDue - paid;
+        
+        const pendingField = document.getElementById('pendingAmount');
+        pendingField.value = pending;
+        pendingField.className = pending > 0 ? "border p-2 rounded w-full font-black text-red-600 bg-red-50" : "border p-2 rounded w-full font-black text-green-600 bg-green-50";
+    }
+
+    function updateFlatNumbers() {
+        const block = document.getElementById('block').value;
+        const floor = document.getElementById('floor').value;
+        const flatSelect = document.getElementById('flatNo');
+        flatSelect.innerHTML = '<option value="">Select Flat</option>';
+        if(!block || !floor) return;
+        for(let i=1; i<=4; i++) {
+            let fName = floor === "Ground" ? `${block}G-${i}` : `${block}-${floor}0${i}`;
+            let opt = new Option(fName, fName);
+            flatSelect.add(opt);
+        }
+    }
+
+    document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const entry = {
+            id: Date.now(),
+            date: document.getElementById('date').value,
+            block: document.getElementById('block').value,
+            flatNo: document.getElementById('flatNo').value,
+            owner: document.getElementById('ownerName').value,
+            oPhone: document.getElementById('ownerPhone').value,
+            month: document.getElementById('month').value,
+            maint: parseFloat(document.getElementById('globalMaint').value),
+            parking: parseFloat(document.getElementById('globalParking').value),
+            water: parseFloat(document.getElementById('globalWater').value),
+            other: parseFloat(document.getElementById('globalOther').value),
+            penalty: parseFloat(document.getElementById('penaltyFee').value),
+            paidAmount: parseFloat(document.getElementById('paidAmount').value),
+            pending: parseFloat(document.getElementById('pendingAmount').value),
+            docs: document.getElementById('docUrl').value
+        };
+
+        // Local Duplicate Check
+        if(entries.some(it => it.flatNo === entry.flatNo && it.month === entry.month)) {
+            alert("Record exists for this month!"); return;
         }
 
-        // 2. AUTO-SYNC ADMIN RATES TO ENTRY FORM
-        function syncConfigToForm() {
-            document.getElementById('maintFee').value = document.getElementById('cfgMaint').value;
-            document.getElementById('parkingFee').value = document.getElementById('cfgParking').value;
-            document.getElementById('waterFee').value = document.getElementById('cfgWater').value;
-        }
-
-        // 3. PENALTY LOGIC (If day > 15)
-        function calculatePenalty() {
-            const dateVal = document.getElementById('date').value;
-            if (!dateVal) return;
-            const day = new Date(dateVal).getDate();
-            document.getElementById('penaltyFee').value = (day > 15) ? 500 : 0;
-        }
-
-        // 4. DUPLICATE CHECK & SAVE
-        document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const flatNo = document.getElementById('flatNo').value;
-            const month = document.getElementById('month').value;
-
-            if (entries.some(ent => ent.flatNo === flatNo && ent.month === month)) {
-                alert("Duplicate record detected for this flat and month!");
-                return;
-            }
-
-            const maint = parseFloat(document.getElementById('maintFee').value);
-            const park = parseFloat(document.getElementById('parkingFee').value);
-            const water = parseFloat(document.getElementById('waterFee').value);
-            const penalty = parseFloat(document.getElementById('penaltyFee').value);
-            const paid = parseFloat(document.getElementById('paidAmount').value);
-            
-            const totalDue = maint + park + water + penalty;
-            const pending = totalDue - paid;
-
-            const entry = {
-                id: Date.now(),
-                flatNo, month, 
-                owner: document.getElementById('ownerName').value,
-                totalDue, penalty, paid, pending,
-                date: document.getElementById('date').value
-            };
-
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(entry) });
             entries.push(entry);
             localStorage.setItem('apt_v3_data', JSON.stringify(entries));
             renderTable();
             e.target.reset();
-            syncConfigToForm();
-        });
+            alert("Saved Successfully!");
+        } catch(e) { alert("Error connecting to server."); }
+    });
 
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            entries.forEach(e => {
-                const isDefaulter = e.pending > 0 || e.penalty > 0;
-                const row = `<tr class="${isDefaulter ? 'defaulter-row' : ''}">
-                    <td class="p-4 font-bold">${e.flatNo}</td>
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        entries.sort((a,b) => b.id - a.id).forEach(e => {
+            const rowClass = e.pending > 0 ? "pending-row" : "paid-row";
+            tbody.innerHTML += `
+                <tr class="${rowClass}">
+                    <td class="p-4 font-bold">${e.flatNo}<br><span class="text-[10px] text-slate-500">${e.owner}</span></td>
                     <td class="p-4">${e.month}</td>
-                    <td class="p-4">₹${e.totalDue}</td>
+                    <td class="p-4 text-xs">₹${e.maint + e.parking + e.water + e.other}</td>
                     <td class="p-4 text-red-600 font-bold">₹${e.penalty}</td>
-                    <td class="p-4 text-green-700">₹${e.paid}</td>
+                    <td class="p-4 font-bold text-green-700">₹${e.paidAmount}</td>
                     <td class="p-4 font-black ${e.pending > 0 ? 'text-red-600' : 'text-slate-400'}">₹${e.pending}</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded text-[10px] ${e.pending <= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                            ${e.pending <= 0 ? 'CLEAR' : 'DUE'}
-                        </span>
-                    </td>
                     <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-xs text-red-400">Delete</button></td>
                 </tr>`;
-                tbody.innerHTML += row;
-            });
-        }
+        });
+    }
 
-        // Helper for flat numbers (same as existing)
-        function updateFlatNumbers() {
-            const block = document.getElementById('block').value;
-            const select = document.getElementById('flatNo');
-            select.innerHTML = '<option value="">Select Flat</option>';
-            if (!block) return;
-            for(let i=101; i<=104; i++) {
-                let opt = document.createElement('option');
-                opt.value = `${block}-${i}`; opt.innerHTML = `${block}-${i}`;
-                select.appendChild(opt);
-            }
+    function deleteEntry(id) {
+        if(confirm("Delete?")) {
+            entries = entries.filter(e => e.id !== id);
+            localStorage.setItem('apt_v3_data', JSON.stringify(entries));
+            renderTable();
         }
+    }
 
-        // Initial setup
-        syncConfigToForm();
-        renderTable();
-    </script>
+    renderTable();
+</script>
 </body>
 </html>
