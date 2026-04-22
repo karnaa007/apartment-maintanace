@@ -107,7 +107,36 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSf3vRcEtBPvaeSw8wDoR21WM50A64JvgW44HDynxGu_90gz6KcfGiWS-vvadxpW_Muw/exec';
+    
+    document.getElementById('maintenanceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // ... (keep your entry object logic the same) ...
+
+    try {
+        // Changed mode to 'cors' for better error handling, 
+        // though Google Apps Script often requires 'no-cors' for simple POSTs
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(entry),
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+        });
+
+        // Update local UI
+        entries.push(entry);
+        localStorage.setItem('apt_v3_data', JSON.stringify(entries));
+        renderTable();
+        e.target.reset();
+        alert("Entry Recorded in Sheet!");
+    } catch(err) {
+        console.error(err);
+        alert("Connection Error. Check if the Web App is deployed to 'Anyone'.");
+    }
+});
+    
     let entries = JSON.parse(localStorage.getItem('apt_v3_data')) || [];
 
     function toggleConfigEdit() {
